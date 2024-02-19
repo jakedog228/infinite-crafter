@@ -7,7 +7,10 @@ from datetime import datetime
 
 
 API = 'https://neal.fun/api/infinite-craft/pair'
-HEADERS = {'Referer': 'https://neal.fun/infinite-craft/'}  # required to access the API, seems like rudimentary security
+HEADERS = {
+    "Referer": "https://neal.fun/infinite-craft/",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
+}  # required to access the API, seems like rudimentary security
 
 # save files
 CREATION_TREE = 'creation_tree.json'
