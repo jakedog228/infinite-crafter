@@ -1,6 +1,6 @@
 import requests
 from time import sleep
-from random import random, shuffle
+from random import random, shuffle, sample
 from itertools import product
 from json import loads, dumps
 from datetime import datetime
@@ -14,7 +14,7 @@ HEADERS = {
 
 # save files
 CREATION_TREE = 'creation_tree.json'
-TO_TRY = 'to_try.txt'
+TRIED = 'tried.txt'
 FIRST_DISCOVERIES = 'first_discoveries.txt'
 
 DELAY = None  # optional delay between requests, in seconds
@@ -39,7 +39,7 @@ def solve():
     print()
     print('Loading save files...')
 
-    creation_tree, available_items, to_try = load_files()
+    creation_tree, available_items, tried = load_files()
 
     print()
     if DELAY is None:
@@ -49,8 +49,10 @@ def solve():
     print()
 
     # try every combination of the available items not already tried
-    while to_try:
-        item1, item2 = to_try.pop()
+    while True:
+        item1, item2 = sample(available_items, 2)
+        if (item1, item2) in tried:
+            continue
 
         if DELAY is not None:
             sleep(random() * DELAY)
@@ -59,11 +61,11 @@ def solve():
         # handle bad response, e.g. ratelimit
         if response.status_code != 200:
             print(f'{C.RED}Error with "{item1}" and "{item2}": {response.status_code}{C.RESET}')
-
-            # try again unless the combination is just invalid (occurs when the item has a bad character, e.g. "+")
-            if response.status_code != 500:
-                to_try.append((item1, item2))
             continue
+
+        tried.append((item1, item2))
+        with open(TRIED, 'a') as f:
+            f.write(f'{item1}\t{item2}\n')
 
         data = response.json()
         emoji = data['emoji']
@@ -96,18 +98,11 @@ def solve():
             # add the result to the creation tree and available items
             available_items.append(result)
             creation_tree[result] = [item1, item2]
-            print(f'\tItem {C.GREEN}#{len(available_items)}{C.RESET} @ depth {C.GREEN}{find_depth(creation_tree, result)}{C.RESET}, adding to {C.GREEN}{len(to_try)}{C.RESET} combinations to try')
+            print(f'\tItem {C.GREEN}#{len(available_items)}{C.RESET} @ depth {C.GREEN}{find_depth(creation_tree, result)}{C.RESET}')
             if CREATION_TREE:
                 with open(CREATION_TREE, 'w') as f:
                     f.write(dumps(creation_tree, indent=2))
 
-            # add the result to the combinations to try
-            new_combos = [(result, item) for item in available_items if item != result]
-            to_try.extend(new_combos)
-            if TO_TRY:
-                with open(TO_TRY, 'a') as f:
-                    f.write('\n'.join(['\t'.join(combo) for combo in new_combos]) + '\n')
-            shuffle(to_try)
 
 
 def load_files():
@@ -125,18 +120,14 @@ def load_files():
         with open(CREATION_TREE, 'w') as f:
             f.write(dumps(creation_tree, indent=2))
 
-    to_try = []
+    tried = []
     try:
-        with open(TO_TRY, 'r') as f:
-            to_try = [tuple(combo.split('\t')) for combo in f.read().strip().split('\n')]
-            shuffle(to_try)
-        print(f'{C.GREEN}Loaded {TO_TRY} with {len(to_try)} combinations!{C.RESET}')
+        with open(TRIED, 'r') as f:
+            tried = [tuple(combo.split('\t')) for combo in f.read().strip().split('\n')]
+        print(f'{C.GREEN}Loaded {TRIED} with {len(tried)} combinations!{C.RESET}')
     except FileNotFoundError:
-        print(f'{C.RED}to-try save not found, using defaults: {C.YELLOW}<{len(to_try)} items>{C.RESET}')
-        to_try = list(product(available_items, repeat=2))
-        shuffle(to_try)
-        with open(TO_TRY, 'w') as f:
-            f.write('\n'.join(['\t'.join(combo) for combo in to_try]) + '\n')
+        print(f'{C.RED}Tried combinations file not found, creating one with the name: "{TRIED}"{C.RESET}')
+        open(TRIED, 'w').close()
 
     try:
         with open(FIRST_DISCOVERIES, 'r') as f:
@@ -146,7 +137,7 @@ def load_files():
         print(f'{C.RED}First discoveries file not found, creating one with the name: "{FIRST_DISCOVERIES}"{C.RESET}')
         open(FIRST_DISCOVERIES, 'w').close()
 
-    return creation_tree, available_items, to_try
+    return creation_tree, available_items, tried
 
 
 def find_depth(creation_tree, result):
