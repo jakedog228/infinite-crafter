@@ -1,4 +1,6 @@
+.idea/
+/venv/
+/old/
 /tried.txt
 /creation_tree.json
 /first_discoveries.txt
-.idea/

@@ -19,7 +19,7 @@ By default, the script runs with the save filenames `creation_tree.json`, `to_tr
 ```python
 # save files
 CREATION_TREE = 'creation_tree.json'
-TO_TRY = 'to_try.txt'
+TRIED = 'tried.txt'
 FIRST_DISCOVERIES = 'first_discoveries.txt'
 
 DELAY = None  # optional delay between requests, in seconds
@@ -47,14 +47,13 @@ Each save file serves a different purpose. They will be created automatically on
   ]
 }
 ```
-- **TO_TRY:** Keeps track of item combinations that have yet to be tried.
+- **TRIED:** Keeps track of item combinations that we have already tried
 ```txt
-Fire Wereunicorn	Ariel Duck
-Magic	Viper
-Idol	Were-mud
-Hell	Minnie Mouse
-Rainbow Gnome	Cobra
-Santa Cowhulk	Robo-penguin
+Fireman	Twilight
+Gnome	Crocodile
+Ducktor	Flaming Drink
+Sea Serpent	Shiva
+Chimera	Moana
 ```
 - **FIRST_DISCOVERIES:** Logs the first-time discoveries with timestamps.
 ```txt
@@ -68,11 +67,11 @@ Santa Cowhulk	Robo-penguin
 ```
 
 ## Screenshots
-![Screenshot 1](./screenshots/Screenshot_1.png)
-![Screenshot 2](./screenshots/Screenshot_2.png)
+![Screenshot 1](./media/Screenshot_1.png)
+![Screenshot 2](./media/Screenshot_2.png)
 
 ## TODO
-- Current size complexity of the `TO_TRY` file is O(n^2). We can decrease this to O(n) by saving what we've tried (`tried.txt`) instead of what we haven't, and extrapolating the rest from `available_items`.
+- Add a "turbo mode" to allow for concurrent requests, speed configurable.
 - Make a system to easily import `CREATION_TREE` into the site's local storage system `infinite-craft-data`.
 - Convert `CREATION_TREE`'s json system into an appendable text file system, to avoid rewriting the entire file each time.
 - Analyze combination patterns to predict future combinations. This could lead to trial optimizations, e.g. combining items with its own parents may not be fruitful.
